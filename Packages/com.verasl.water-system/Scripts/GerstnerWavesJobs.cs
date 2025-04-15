@@ -134,10 +134,10 @@ namespace WaterSystem
             [ReadOnly]
             public NativeArray<Wave> WaveData; // wave data stroed in vec4's like the shader version but packed into one
             [ReadOnly]
-            public NativeArray<float3> Position;
+            public NativeArray<float4> Position;
 
             [WriteOnly]
-            public NativeArray<float3> OutPosition;
+            public NativeArray<float4> OutPosition;
             [WriteOnly]
             public NativeArray<float3> OutNormal;
 
@@ -151,13 +151,13 @@ namespace WaterSystem
             {
                 //重新定义变量，减少访存
                 var WaveD = WaveData;
-                var Pos = Position;
+                float3 Pos = Position[i].xyz;
                 var T = Time;
                 var OffsetL = OffsetLength;
                 if (i < OffsetL.x || i >= OffsetL.y - OffsetL.x) return;
                 
                 var waveCountMulti = 1f / WaveD.Length;
-                var wavePos = new float3(0f, 0f, 0f);
+                var wavePos = new float4(0f, 0f, 0f, 0f);
                 var waveNorm = new float3(0f, 0f, 0f);
 
                 for (var wave = 0; wave < WaveD.Length; wave++) // for each wave

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
 using Unity.Burst;
@@ -149,45 +149,40 @@ namespace WaterSystem
             // The code actually running on the job
             public void Execute(int i)
             {
-                //重新定义变量，减少访存
-                var WaveD = WaveData;
-                var Pos = Position;
-                var T = Time;
-                var OffsetL = OffsetLength;
-                if (i < OffsetL.x || i >= OffsetL.y - OffsetL.x) return;
+                if (i < OffsetLength.x || i >= OffsetLength.y - OffsetLength.x) return;
                 
-                var waveCountMulti = 1f / WaveD.Length;
+                var waveCountMulti = 1f / WaveData.Length;
                 var wavePos = new float3(0f, 0f, 0f);
                 var waveNorm = new float3(0f, 0f, 0f);
 
-                for (var wave = 0; wave < WaveD.Length; wave++) // for each wave
+                for (var wave = 0; wave < WaveData.Length; wave++) // for each wave
                 {
                     // Wave data vars
-                    var pos = Pos[i].xz;
+                    var pos = Position[i].xz;
 
-                    var amplitude = WaveD[wave].amplitude;
-                    var direction = WaveD[wave].direction;
-                    var wavelength = WaveD[wave].wavelength;
-                    var omniPos = WaveD[wave].origin;
+                    var amplitude = WaveData[wave].amplitude;
+                    var direction = WaveData[wave].direction;
+                    var wavelength = WaveData[wave].wavelength;
+                    var omniPos = WaveData[wave].origin;
                     ////////////////////////////////wave value calculations//////////////////////////
                     var w = 6.28318f / wavelength; // 2pi over wavelength(hardcoded)
                     var wSpeed = math.sqrt(9.8f * w); // frequency of the wave based off wavelength
                     const float peak = 0.8f; // peak value, 1 is the sharpest peaks
-                    var qi = peak / (amplitude * w * WaveD.Length);
+                    var qi = peak / (amplitude * w * WaveData.Length);
 
                     var windDir = new float2(0f, 0f);
 
                     direction = math.radians(direction); // convert the incoming degrees to radians
-                    var windDirInput = new float2(math.sin(direction), math.cos(direction)) * (1 - WaveD[wave].onmiDir); // calculate wind direction - TODO - currently radians
-                    var windOmniInput = (pos - omniPos) * WaveD[wave].onmiDir;
+                    var windDirInput = new float2(math.sin(direction), math.cos(direction)) * (1 - WaveData[wave].onmiDir); // calculate wind direction - TODO - currently radians
+                    var windOmniInput = (pos - omniPos) * WaveData[wave].onmiDir;
 
                     windDir += windDirInput;
                     windDir += windOmniInput;
                     windDir = math.normalize(windDir);
-                    var dir = math.dot(windDir, pos - (omniPos * WaveD[wave].onmiDir));
+                    var dir = math.dot(windDir, pos - (omniPos * WaveData[wave].onmiDir));
 
                     ////////////////////////////position output calculations/////////////////////////
-                    var calc = dir * w + -T * wSpeed; // the wave calculation
+                    var calc = dir * w + -Time * wSpeed; // the wave calculation
                     var cosCalc = math.cos(calc); // cosine version(used for horizontal undulation)
                     var sinCalc = math.sin(calc); // sin version(used for vertical undulation)
 

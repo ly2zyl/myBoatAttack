@@ -22,9 +22,9 @@ namespace WaterSystem
         private static NativeArray<Wave> _waveData; // Wave data from the water system
 
         //Details for Buoyant Objects
-        private static NativeArray<float3> _positions;
+        private static NativeArray<float4> _positions;
         private static int _positionCount;
-        private static NativeArray<float3> _wavePos;
+        private static NativeArray<float4> _wavePos;
         private static NativeArray<float3> _waveNormal;
         private static JobHandle _waterHeightHandle;
         static readonly Dictionary<int, int2> Registry = new Dictionary<int, int2>();
@@ -41,8 +41,8 @@ namespace WaterSystem
                 _waveData[i] = Water.Instance._waves[i];
             }
 
-            _positions = new NativeArray<float3>(4096, Allocator.Persistent);
-            _wavePos = new NativeArray<float3>(4096, Allocator.Persistent);
+            _positions = new NativeArray<float4>(4096, Allocator.Persistent);
+            _wavePos = new NativeArray<float4>(4096, Allocator.Persistent);
             _waveNormal = new NativeArray<float3>(4096, Allocator.Persistent);
 
             Initialized = true;
@@ -67,7 +67,7 @@ namespace WaterSystem
 
             if (Registry.TryGetValue(guid, out var offsets))
             {
-                for (var i = offsets.x; i < offsets.y; i++) _positions[i] = samplePoints[i - offsets.x];
+                for (var i = offsets.x; i < offsets.y; i++) _positions[i] = new float4(samplePoints[i - offsets.x], 0f);
             }
             else
             {
@@ -82,8 +82,11 @@ namespace WaterSystem
         public static void GetData(int guid, ref float3[] outPos, ref float3[] outNorm)
         {
             if (!Registry.TryGetValue(guid, out var offsets)) return;
-            
-            _wavePos.Slice(offsets.x, offsets.y - offsets.x).CopyTo(outPos);
+            var slice = _wavePos.Slice(offsets.x, offsets.y - offsets.x);
+            for (int i = 0; i < slice.Length; i++)
+            {
+                outPos[i] = slice[i].xyz; 
+            }
             if(outNorm != null)
                 _waveNormal.Slice(offsets.x, offsets.y - offsets.x).CopyTo(outNorm);
         }
